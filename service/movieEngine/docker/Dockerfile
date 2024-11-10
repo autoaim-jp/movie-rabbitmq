@@ -2,7 +2,8 @@ FROM node:20-slim
 
 WORKDIR /app
 
-RUN apt install imagemagick ffmpeg
+RUN apt update -y
+RUN apt install -y imagemagick ffmpeg 
 
 COPY ./service/movieEngine/src/package.json /app/
 

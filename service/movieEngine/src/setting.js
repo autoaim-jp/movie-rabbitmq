@@ -14,7 +14,7 @@ setting.amqp.REQUEST_QUEUE = 'movie-request-queue'
 setting.amqp.RESPONSE_QUEUE = 'movie-response-queue'
 
 setting.movie = {}
-settng.movie.SLEEP_MS = 3 * 1000
+setting.movie.SLEEP_MS = 3 * 1000
 
 const getList = (...keyList) => {
   /* eslint-disable no-param-reassign */

@@ -1,22 +1,26 @@
 const mod = {}
 const store = {}
 
-const init = async ({ setting, lib, amqpConnection }) => {
+const init = async ({ setting, output, lib, amqpConnection }) => {
   const amqpPromptChannel = await amqpConnection.createChannel()
   mod.amqpPromptChannel = amqpPromptChannel
   const amqpResponseChannel = await amqpConnection.createChannel()
   mod.amqpResponseChannel = amqpResponseChannel
 
   mod.setting = setting
+  mod.output = output
   mod.lib = lib
 }
 
 const handleRequest = async ({ requestJson }) => {
   const { requestId, requestType } = requestJson
   const responseObj = {}
+  const tmpFilePath = '/app/data/tmp.mp4'
 
   if (requestType === 'ping') {
     responseObj.message = 'pong'
+    const saveResult = mod.output.saveFile(tmpFilePath, responseObj.buf)
+    console.log({ saveResult })
   }
 
   return responseObj
