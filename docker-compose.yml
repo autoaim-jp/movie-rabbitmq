@@ -1,0 +1,51 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    ports:
+      - 127.0.0.1:5672:5672
+      - 127.0.0.1:15672:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=movierabbitmqadmin
+      - RABBITMQ_DEFAULT_PASS=zlpL0xjKYY1iX0j365zoIjz
+    volumes:
+      - ./service/rabbitmq/data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  api_server:
+    build:
+      context: ./
+      dockerfile: ./service/apiServer/docker/Dockerfile
+    tty: true
+    working_dir: /app
+    volumes:
+      - ./service/apiServer/src:/app
+      - movie-rabbitmq-as-nm:/app/node_modules
+    command: sh -c "yarn run start"
+    ports:
+      - 127.0.0.1:25672:25672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  movie_engine:
+   build:
+     context: ./
+     dockerfile: ./service/movieEngine/docker/Dockerfile
+   tty: true
+   working_dir: /app
+   volumes:
+     - ./service/movieEngine/src:/app
+      - movie-rabbitmq-me-nm:/app/node_modules
+   command: sh -c "yarn run start"
+   depends_on:
+     rabbitmq:
+       condition: service_healthy
+
+volumes:
+  movie-rabbitmq-as-nm:
+  movie-rabbitmq-me-nm:
+
