@@ -15,15 +15,15 @@ services:
       timeout: 10s
       retries: 20
 
-  api_server:
+  movie_api:
     build:
       context: ./
-      dockerfile: ./service/apiServer/docker/Dockerfile
+      dockerfile: ./service/movieApi/docker/Dockerfile
     tty: true
     working_dir: /app
     volumes:
-      - ./service/apiServer/src:/app
-      - movie-rabbitmq-as-nm:/app/node_modules
+      - ./service/movieApi/src:/app
+      - movie-rabbitmq-ma-nm:/app/node_modules
     command: sh -c "yarn run start"
     ports:
       - 127.0.0.1:25672:25672
@@ -46,6 +46,6 @@ services:
        condition: service_healthy
 
 volumes:
-  movie-rabbitmq-as-nm:
+  movie-rabbitmq-ma-nm:
   movie-rabbitmq-me-nm:
 
