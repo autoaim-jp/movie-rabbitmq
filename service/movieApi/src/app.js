@@ -5,6 +5,7 @@ import express from 'express'
 import amqplib from 'amqplib'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
+import multer from 'multer'
 
 import setting from './setting.js'
 import action from './action.js'
@@ -32,19 +33,21 @@ const _getDefaultRouter = () => {
 const _getFunctionRouter = () => {
   const expressRouter = express.Router()
 
-  const { REGISTER_PROMPT, LOOKUP_RESPONSE } = a.setting.getList('api.REGISTER_PROMPT', 'api.LOOKUP_RESPONSE')
+  const { REGISTER_PROMPT, LOOKUP_RESPONSE, FORM_UPLOAD } = a.setting.getList('api.REGISTER_PROMPT', 'api.LOOKUP_RESPONSE', 'key.FORM_UPLOAD')
 
+  const fileUploadHandler = a.action.getHandlerFileUpload({
+    FORM_UPLOAD,
+    parseMultipartFileUpload: a.lib.parseMultipartFileUpload
+  })
   const registerPromptHandler = a.action.getHandlerRegisterPrompt({
     handleRegisterPrompt: a.core.handleRegisterPrompt
   })
-  expressRouter.post(REGISTER_PROMPT, registerPromptHandler)
+  expressRouter.post(REGISTER_PROMPT, fileUploadHandler, registerPromptHandler)
 
   const lookupResponseHandler = a.action.getHandlerLookupResponse({
     handleLookupResponse: a.core.handleLookupResponse
   })
   expressRouter.get(LOOKUP_RESPONSE, lookupResponseHandler)
-
-
 
   return expressRouter
 }
@@ -72,7 +75,7 @@ const init = async () => {
   const { AMQP_USER: user, AMQP_PASS: pass, AMQP_HOST: host, AMQP_PORT: port } = a.setting.getList('env.AMQP_USER', 'env.AMQP_PASS', 'env.AMQP_HOST', 'env.AMQP_PORT')
   const amqpConnection = await a.lib.createAmqpConnection({ amqplib, user, pass, host, port })
   await core.init({ setting, lib, amqpConnection })
-  lib.init({ ulid })
+  lib.init({ ulid, multer })
 }
 
 const main = async () => {

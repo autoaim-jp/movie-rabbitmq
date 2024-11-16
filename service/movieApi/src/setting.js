@@ -17,6 +17,9 @@ setting.amqp = {}
 setting.amqp.REQUEST_QUEUE = 'movie-request-queue'
 setting.amqp.RESPONSE_QUEUE = 'movie-response-queue'
 
+setting.key = {}
+setting.key.FORM_UPLOAD = 'file'
+
 setting.api = {}
 const API_ROOT_PATH = '/api/v1'
 setting.api.REGISTER_PROMPT = `${API_ROOT_PATH}/prompt/register`

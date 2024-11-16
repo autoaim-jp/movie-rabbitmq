@@ -9,14 +9,15 @@ const init = async ({ setting, lib, amqpConnection }) => {
   mod.lib = lib
 }
 
-const handleRegisterPrompt = async ({ prompt }) => {
+const handleRegisterPrompt = async ({ fileBuffer }) => {
   const queue = mod.setting.getValue('amqp.REQUEST_QUEUE') 
   await mod.amqpChannel.assertQueue(queue)
 
   const requestId = mod.lib.getUlid()
   const requestObj = {
     requestId,
-    prompt,
+    requestType: 'ping',
+    fileBuffer,
   }
   const requestObjStr = JSON.stringify(requestObj)
 

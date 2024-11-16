@@ -13,14 +13,16 @@ const init = async ({ setting, output, lib, amqpConnection }) => {
 }
 
 const handleRequest = async ({ requestJson }) => {
-  const { requestId, requestType } = requestJson
+  const { requestId, requestType, fileBuffer } = requestJson
   const responseObj = {}
-  const tmpFilePath = '/app/data/tmp.mp4'
+  const tmpFilePath = '/app/data/uploaded_file'
 
   if (requestType === 'ping') {
     responseObj.message = 'pong'
-    const saveResult = mod.output.saveFile(tmpFilePath, responseObj.buf)
-    console.log({ saveResult })
+    const saveResult = mod.output.saveFile({ filePath: tmpFilePath, fileBuffer })
+    // console.log({ saveResult })
+  } else {
+    console.log('invalid requestType:', requestType)
   }
 
   return responseObj
@@ -36,13 +38,14 @@ const startConsumer = async () => {
 
   mod.amqpPromptChannel.consume(promptQueue, async (msg) => {
     if (msg !== null) {
-      console.log('Recieved:', msg.content.toString())
+      // console.log('Recieved:', msg.content.toString())
       const SLEEP_MS = mod.setting.getValue('movie.SLEEP_MS')
-      console.log(`sleep ${SLEEP_MS}s`)
+      // console.log(`sleep ${SLEEP_MS}s`)
       await mod.lib.awaitSleep({ ms: SLEEP_MS })
 
       const requestJson = JSON.parse(msg.content.toString())
 
+      const { requestId } = requestJson
       const responseObj = await handleRequest({ requestJson })
       console.log('movie response:')
       console.log(responseObj)
