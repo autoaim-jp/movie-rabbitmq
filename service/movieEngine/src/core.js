@@ -12,8 +12,36 @@ const init = async ({ setting, output, lib, amqpConnection }) => {
   mod.lib = lib
 }
 
-const handleRequest = async ({ requestJson }) => {
-  const { requestId, requestType, fileBuffer } = requestJson
+const _splitBuffer = ({ buffer, delimiter }) => {
+  const delimiterBuffer = Buffer.from(delimiter)
+
+  const _getStrAndBuffer = ({ buffer }) => {
+    const delimiterIndex = buffer.indexOf(delimiterBuffer)
+    if (delimiterIndex === -1) {
+      throw new Error('Delimiter not found in buffer')
+    }
+    const textBuffer = buffer.slice(0, delimiterIndex)
+    const textData = textBuffer.toString()
+
+    const restBuffer = buffer.slice(delimiterIndex + delimiterBuffer.length)
+
+    return { textData, restBuffer }
+  }
+
+  const { textData: requestType, restBuffer: requestIdAndFileBuffer } = _getStrAndBuffer({ buffer: buffer })
+  const { textData: requestId, restBuffer: fileBuffer } = _getStrAndBuffer({ buffer: requestIdAndFileBuffer })
+
+  return {
+    requestType,
+    requestId,
+    fileBuffer,
+  }
+}
+
+const handleRequest = async ({ requestBuffer }) => {
+  const delimiter = Buffer.from('|')
+  const { requestId, requestType, fileBuffer } = _splitBuffer({ buffer: requestBuffer, delimiter })
+  console.log({ requestId, requestType })
   const responseObj = {}
   const tmpFilePath = '/app/data/uploaded_file'
 
@@ -25,7 +53,7 @@ const handleRequest = async ({ requestJson }) => {
     console.log('invalid requestType:', requestType)
   }
 
-  return responseObj
+  return { requestId, responseObj }
 }
 
 
@@ -43,10 +71,9 @@ const startConsumer = async () => {
       // console.log(`sleep ${SLEEP_MS}s`)
       await mod.lib.awaitSleep({ ms: SLEEP_MS })
 
-      const requestJson = JSON.parse(msg.content.toString())
+      const requestBuffer = msg.content
 
-      const { requestId } = requestJson
-      const responseObj = await handleRequest({ requestJson })
+      const { requestId, responseObj } = await handleRequest({ requestBuffer })
       console.log('movie response:')
       console.log(responseObj)
 

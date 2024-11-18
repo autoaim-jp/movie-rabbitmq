@@ -14,14 +14,18 @@ const handleRegisterPrompt = async ({ fileBuffer }) => {
   await mod.amqpChannel.assertQueue(queue)
 
   const requestId = mod.lib.getUlid()
-  const requestObj = {
-    requestId,
-    requestType: 'ping',
-    fileBuffer,
-  }
-  const requestObjStr = JSON.stringify(requestObj)
+  const requestType = 'ping'
 
-  mod.amqpChannel.sendToQueue(queue, Buffer.from(requestObjStr))
+  const delimiter = Buffer.from('|')
+  const messageBuffer = Buffer.concat([
+    Buffer.from(requestType),
+    delimiter,
+    Buffer.from(requestId),
+    delimiter,
+    fileBuffer, 
+  ])
+
+  mod.amqpChannel.sendToQueue(queue, messageBuffer)
 
   const handleResult = { isRegistered: true, requestId }
   return handleResult
