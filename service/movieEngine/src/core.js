@@ -28,20 +28,24 @@ const _splitBuffer = ({ buffer, delimiter }) => {
     return { textData, restBuffer }
   }
 
-  const { textData: requestType, restBuffer: requestIdAndFileBuffer } = _getStrAndBuffer({ buffer: buffer })
-  const { textData: requestId, restBuffer: fileBuffer } = _getStrAndBuffer({ buffer: requestIdAndFileBuffer })
+  let currentRestBuffer = buffer
+  const splitResult = {}
+  const keyList = ['requestType', 'requestId', 'rightTopText', 'leftTopText', 'rightBottomText']
+  keyList.forEach((key) => {
+    const { textData, restBuffer } = _getStrAndBuffer({ buffer: currentRestBuffer })
+    splitResult[key] = textData
+    currentRestBuffer = restBuffer
+  })
 
-  return {
-    requestType,
-    requestId,
-    fileBuffer,
-  }
+  splitResult.fileBuffer = currentRestBuffer
+
+  return splitResult
 }
 
 const handleRequest = async ({ requestBuffer }) => {
   const delimiter = Buffer.from('|')
-  const { requestId, requestType, fileBuffer } = _splitBuffer({ buffer: requestBuffer, delimiter })
-  console.log({ requestId, requestType })
+  const { requestId, requestType, rightTopText, leftTopText, rightBottomText, fileBuffer } = _splitBuffer({ buffer: requestBuffer, delimiter })
+  console.log({ requestId, requestType, rightTopText, leftTopText, rightBottomText })
   const responseObj = {}
   const tmpFilePath = '/app/data/uploaded_file'
 

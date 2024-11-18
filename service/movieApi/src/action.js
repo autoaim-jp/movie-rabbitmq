@@ -29,11 +29,12 @@ const getHandlerFileUpload = ({ FORM_UPLOAD, parseMultipartFileUpload }) => {
 
 const getHandlerRegisterPrompt = ({ handleRegisterPrompt }) => {
   return async (req, res) => {
-    // const { prompt } = req.body
+    const { rightTopText, leftTopText, rightBottomText } = req.body
     // console.log({ debug: true, request: 'ok!', prompt })
     const fileBuffer = req.file.buffer
 
     const handleResult = await handleRegisterPrompt({ 
+      rightTopText, leftTopText, rightBottomText,
       fileBuffer, 
     })
 

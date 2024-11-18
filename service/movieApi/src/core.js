@@ -9,7 +9,7 @@ const init = async ({ setting, lib, amqpConnection }) => {
   mod.lib = lib
 }
 
-const handleRegisterPrompt = async ({ fileBuffer }) => {
+const handleRegisterPrompt = async ({ fileBuffer, rightTopText, leftTopText, rightBottomText }) => {
   const queue = mod.setting.getValue('amqp.REQUEST_QUEUE') 
   await mod.amqpChannel.assertQueue(queue)
 
@@ -21,6 +21,12 @@ const handleRegisterPrompt = async ({ fileBuffer }) => {
     Buffer.from(requestType),
     delimiter,
     Buffer.from(requestId),
+    delimiter,
+    Buffer.from(rightTopText),
+    delimiter,
+    Buffer.from(leftTopText),
+    delimiter,
+    Buffer.from(rightBottomText),
     delimiter,
     fileBuffer, 
   ])
