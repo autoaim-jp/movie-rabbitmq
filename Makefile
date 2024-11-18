@@ -1,17 +1,27 @@
 include setting/version.conf
 SHELL=/bin/bash
-PHONY=default run rebuild help 
+PHONY=default init run rebuild help 
 
 .PHONY: $(PHONY)
 
 default: run
 
+init: init-submodule init-module
 run: docker-compose-up
 rebuild: docker-compose-down docker-compose-build
 
 help:
+	@echo "Usage: make init"
 	@echo "Usage: make run"
 	@echo "Usage: make help"
+
+init-submodule:
+	git config -f .gitmodules submodule.xmodule-movie-core.branch master
+	git submodule update --remote --init --recursive
+
+init-module:
+	rm -rf ./service/movieEngine/src/lib/xmodule-movie-core/
+	mkdir -p ./service/movieEngine/src/lib/ && cp -r ./xmodule-movie-core/ ./service/movieEngine/src/lib/
 
 docker-compose-up:
 	docker compose -p ${DOCKER_PROJECT_NAME} up

@@ -1,0 +1,4 @@
+[submodule "xmodule-movie-core"]
+	path = xmodule-movie-core
+	url = https://github.com/autoaim-jp/xmodule-movie-core
+	branch = master
