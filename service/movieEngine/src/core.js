@@ -1,7 +1,7 @@
 const mod = {}
 const store = {}
 
-const init = async ({ setting, output, lib, amqpConnection }) => {
+const init = async ({ setting, output, input, lib, amqpConnection }) => {
   const amqpPromptChannel = await amqpConnection.createChannel()
   mod.amqpPromptChannel = amqpPromptChannel
   const amqpResponseChannel = await amqpConnection.createChannel()
@@ -9,6 +9,7 @@ const init = async ({ setting, output, lib, amqpConnection }) => {
 
   mod.setting = setting
   mod.output = output
+  mod.input = input
   mod.lib = lib
 }
 
@@ -42,6 +43,18 @@ const _splitBuffer = ({ buffer, delimiter }) => {
   return splitResult
 }
 
+const _callMainDummy = async () => {
+  const outputFilePath = '/app/data/output_file.mp4'
+  const resultList = []
+  const commandList = ['cd', '/app/lib/xmodule-movie-core', '&&', './main_dummy.sh', outputFilePath]
+
+  await mod.lib.fork({ commandList, resultList })
+
+  const resultMovieBuffer = mod.input.readFile({ filePath: outputFilePath })
+
+  return resultMovieBuffer
+}
+
 const handleRequest = async ({ requestBuffer }) => {
   const delimiter = Buffer.from('|')
   const { requestId, requestType, rightTopText, leftTopText, rightBottomText, fileBuffer } = _splitBuffer({ buffer: requestBuffer, delimiter })
@@ -53,6 +66,8 @@ const handleRequest = async ({ requestBuffer }) => {
     responseObj.message = 'pong'
     const saveResult = mod.output.saveFile({ filePath: tmpFilePath, fileBuffer })
     // console.log({ saveResult })
+  } else if (requestType === 'main_dummy') {
+    const resultMovieBuffer = _callMainDummy()
   } else {
     console.log('invalid requestType:', requestType)
   }

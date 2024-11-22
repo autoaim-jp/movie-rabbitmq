@@ -22,6 +22,7 @@ init-submodule:
 init-module:
 	rm -rf ./service/movieEngine/src/lib/xmodule-movie-core/
 	mkdir -p ./service/movieEngine/src/lib/ && cp -r ./xmodule-movie-core/ ./service/movieEngine/src/lib/
+	rm -rf ./service/movieEngine/src/lib/xmodule-movie-core/data/generated/
 
 docker-compose-up:
 	docker compose -p ${DOCKER_PROJECT_NAME} up
