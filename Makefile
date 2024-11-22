@@ -6,7 +6,7 @@ PHONY=default init run rebuild help
 
 default: run
 
-init: init-submodule init-module
+init: init-submodule init-module init-dir
 run: docker-compose-up
 rebuild: docker-compose-down docker-compose-build
 
@@ -23,6 +23,9 @@ init-module:
 	rm -rf ./service/movieEngine/src/lib/xmodule-movie-core/
 	mkdir -p ./service/movieEngine/src/lib/ && cp -r ./xmodule-movie-core/ ./service/movieEngine/src/lib/
 	rm -rf ./service/movieEngine/src/lib/xmodule-movie-core/data/generated/
+
+init-dir:
+	mkdir -p ./service/movieEngine/src/data/
 
 docker-compose-up:
 	docker compose -p ${DOCKER_PROJECT_NAME} up
