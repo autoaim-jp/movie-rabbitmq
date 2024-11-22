@@ -8,7 +8,7 @@ curl -X POST \
   -F "leftTopText=left-top" \
   -F "rightBottomText=right-bottom" \
   -F "file=@/tmp/sample_movie_rabbitmq.txt" \
-  http://localhost:25673/api/v1/prompt/register
+  http://localhost:25673/api/v1/prompt/register/ping
 
 echo "sleep 5 to wait movieEngine saving file"
 sleep 5

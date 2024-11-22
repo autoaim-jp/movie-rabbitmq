@@ -22,7 +22,8 @@ setting.key.FORM_UPLOAD = 'file'
 
 setting.api = {}
 const API_ROOT_PATH = '/api/v1'
-setting.api.REGISTER_PROMPT = `${API_ROOT_PATH}/prompt/register`
+setting.api.REGISTER_PROMPT_PING = `${API_ROOT_PATH}/prompt/register/ping`
+setting.api.REGISTER_PROMPT_DUMMY = `${API_ROOT_PATH}/prompt/register/dummy`
 setting.api.LOOKUP_RESPONSE = `${API_ROOT_PATH}/response/lookup`
 
 const getList = (...keyList) => {

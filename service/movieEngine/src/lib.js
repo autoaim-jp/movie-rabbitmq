@@ -22,15 +22,15 @@ const fork = ({ commandList, resultList }) => {
     const proc = mod.spawn(commandList[0], commandList.slice(1), { shell: true })
 
     proc.stderr.on('data', (err) => {
-      logger.error({ at: 'lib.fork', error: err.toString() })
+      console.log({ at: 'lib.fork', error: err.toString() })
     })
     proc.stdout.on('data', (data) => {
-      logger.info({ at: 'lib.fork', data: data.toString() })
+      console.log({ at: 'lib.fork', data: data.toString() })
       const result = ((data || '').toString() || '')
       resultList.push(result)
     })
     proc.on('close', (code) => {
-      logger.info('spawn', code)
+      console.log('spawn', code)
       resolve()
     })
   })

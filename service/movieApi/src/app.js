@@ -33,16 +33,23 @@ const _getDefaultRouter = () => {
 const _getFunctionRouter = () => {
   const expressRouter = express.Router()
 
-  const { REGISTER_PROMPT, LOOKUP_RESPONSE, FORM_UPLOAD } = a.setting.getList('api.REGISTER_PROMPT', 'api.LOOKUP_RESPONSE', 'key.FORM_UPLOAD')
+  const { REGISTER_PROMPT_PING, REGISTER_PROMPT_DUMMY, LOOKUP_RESPONSE, FORM_UPLOAD } = a.setting.getList('api.REGISTER_PROMPT_PING', 'api.REGISTER_PROMPT_DUMMY', 'api.LOOKUP_RESPONSE', 'key.FORM_UPLOAD')
 
   const fileUploadHandler = a.action.getHandlerFileUpload({
     FORM_UPLOAD,
     parseMultipartFileUpload: a.lib.parseMultipartFileUpload
   })
-  const registerPromptHandler = a.action.getHandlerRegisterPrompt({
-    handleRegisterPrompt: a.core.handleRegisterPrompt
+
+  const registerPingPromptHandler = a.action.getHandlerRegisterPingPrompt({
+    handleRegisterPingPrompt: a.core.handleRegisterPingPrompt
   })
-  expressRouter.post(REGISTER_PROMPT, fileUploadHandler, registerPromptHandler)
+  expressRouter.post(REGISTER_PROMPT_PING, fileUploadHandler, registerPingPromptHandler)
+
+  const registerDummyPromptHandler = a.action.getHandlerRegisterDummyPrompt({
+    handleRegisterDummyPrompt: a.core.handleRegisterDummyPrompt
+  })
+  // expressRouter.post(REGISTER_PROMPT_DUMMY, fileUploadHandler, registerDummyPromptHandler)
+  expressRouter.post(REGISTER_PROMPT_DUMMY, registerDummyPromptHandler)
 
   const lookupResponseHandler = a.action.getHandlerLookupResponse({
     handleLookupResponse: a.core.handleLookupResponse

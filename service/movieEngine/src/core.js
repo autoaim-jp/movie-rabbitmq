@@ -17,9 +17,12 @@ const _splitBuffer = ({ buffer, delimiter }) => {
   const delimiterBuffer = Buffer.from(delimiter)
 
   const _getStrAndBuffer = ({ buffer }) => {
+    if (buffer === null) {
+      return { textData: null, restBuffer: null }
+    }
     const delimiterIndex = buffer.indexOf(delimiterBuffer)
     if (delimiterIndex === -1) {
-      throw new Error('Delimiter not found in buffer')
+      return { textData: null, restBuffer: null }
     }
     const textBuffer = buffer.slice(0, delimiterIndex)
     const textData = textBuffer.toString()

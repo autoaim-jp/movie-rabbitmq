@@ -27,16 +27,25 @@ const getHandlerFileUpload = ({ FORM_UPLOAD, parseMultipartFileUpload }) => {
   }
 }
 
-const getHandlerRegisterPrompt = ({ handleRegisterPrompt }) => {
+const getHandlerRegisterPingPrompt = ({ handleRegisterPingPrompt }) => {
   return async (req, res) => {
     const { rightTopText, leftTopText, rightBottomText } = req.body
     // console.log({ debug: true, request: 'ok!', prompt })
     const fileBuffer = req.file.buffer
 
-    const handleResult = await handleRegisterPrompt({ 
+    const handleResult = await handleRegisterPingPrompt({ 
       rightTopText, leftTopText, rightBottomText,
       fileBuffer, 
     })
+
+    res.json({ result: handleResult })
+  }
+}
+
+const getHandlerRegisterDummyPrompt = ({ handleRegisterDummyPrompt }) => {
+  return async (req, res) => {
+    // console.log({ debug: true, request: 'ok!', prompt })
+    const handleResult = await handleRegisterDummyPrompt({})
 
     res.json({ result: handleResult })
   }
@@ -54,7 +63,8 @@ const getHandlerLookupResponse = ({ handleLookupResponse }) => {
 
 export default {
   getHandlerFileUpload,
-  getHandlerRegisterPrompt,
+  getHandlerRegisterPingPrompt,
+  getHandlerRegisterDummyPrompt,
   getHandlerLookupResponse,
 }
 

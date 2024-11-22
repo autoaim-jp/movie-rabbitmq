@@ -9,11 +9,7 @@ const init = async ({ setting, lib, amqpConnection }) => {
   mod.lib = lib
 }
 
-const handleRegisterPrompt = async ({ fileBuffer, rightTopText, leftTopText, rightBottomText }) => {
-  const queue = mod.setting.getValue('amqp.REQUEST_QUEUE') 
-  await mod.amqpChannel.assertQueue(queue)
-
-  const requestId = mod.lib.getUlid()
+const _getPingRequest = ({ requestId, fileBuffer, rightTopText, leftTopText, rightBottomText }) => {
   const requestType = 'ping'
 
   const delimiter = Buffer.from('|')
@@ -31,11 +27,47 @@ const handleRegisterPrompt = async ({ fileBuffer, rightTopText, leftTopText, rig
     fileBuffer, 
   ])
 
+  return messageBuffer
+}
+
+const _getMainDummyRequest = ({ requestId }) => {
+  const requestType = 'main_dummy'
+
+  const delimiter = Buffer.from('|')
+  const messageBuffer = Buffer.concat([
+    Buffer.from(requestType),
+    delimiter,
+    Buffer.from(requestId),
+  ])
+
+  return messageBuffer
+}
+
+const handleRegisterPingPrompt = async ({ fileBuffer, rightTopText, leftTopText, rightBottomText }) => {
+  const queue = mod.setting.getValue('amqp.REQUEST_QUEUE') 
+  await mod.amqpChannel.assertQueue(queue)
+
+  const requestId = mod.lib.getUlid()
+  const messageBuffer = _getPingRequest({ requestId, fileBuffer, rightTopText, leftTopText, rightBottomText })
   mod.amqpChannel.sendToQueue(queue, messageBuffer)
 
   const handleResult = { isRegistered: true, requestId }
   return handleResult
 }
+
+const handleRegisterDummyPrompt = async ({}) => {
+  const queue = mod.setting.getValue('amqp.REQUEST_QUEUE') 
+  await mod.amqpChannel.assertQueue(queue)
+
+  const requestId = mod.lib.getUlid()
+  const messageBuffer = _getMainDummyRequest({ requestId })
+  mod.amqpChannel.sendToQueue(queue, messageBuffer)
+
+  const handleResult = { isRegistered: true, requestId }
+  return handleResult
+}
+
+
 
 const handleLookupResponse = ({ requestId }) => {
   const handleResult = store[requestId]
@@ -65,7 +97,8 @@ const startConsumer = async () => {
 
 export default {
   init,
-  handleRegisterPrompt,
+  handleRegisterPingPrompt,
+  handleRegisterDummyPrompt,
   handleLookupResponse,
   startConsumer,
 }
