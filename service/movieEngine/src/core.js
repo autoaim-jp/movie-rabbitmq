@@ -53,6 +53,8 @@ const _callMainDummy = async () => {
 
   await mod.lib.fork({ commandList, resultList })
 
+  mod.output.saveFile({ filePath: '/app/data/fork3.log', fileBuffer: Buffer.from(resultList.join('\n')) })
+
   const resultMovieBuffer = mod.input.readFile({ filePath: outputFilePath })
 
   return resultMovieBuffer

@@ -23,6 +23,8 @@ const fork = ({ commandList, resultList }) => {
 
     proc.stderr.on('data', (err) => {
       console.log({ at: 'lib.fork', error: err.toString() })
+      const result = ((err || '').toString() || '')
+      resultList.push(result)
     })
     proc.stdout.on('data', (data) => {
       console.log({ at: 'lib.fork', data: data.toString() })

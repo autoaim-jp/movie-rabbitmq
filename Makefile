@@ -20,7 +20,7 @@ init-submodule:
 	git submodule update --remote --init --recursive
 
 init-module:
-	rm -rf ./service/movieEngine/src/lib/xmodule-movie-core/
+	sudo rm -rf ./service/movieEngine/src/lib/xmodule-movie-core/
 	mkdir -p ./service/movieEngine/src/lib/ && cp -r ./xmodule-movie-core/ ./service/movieEngine/src/lib/
 	rm -rf ./service/movieEngine/src/lib/xmodule-movie-core/data/generated/
 
