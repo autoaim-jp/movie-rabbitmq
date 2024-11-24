@@ -1,7 +1,12 @@
 const mod = {}
 
-const init = ({ spawn }) => {
+const init = ({ spawn, ulid }) => {
   mod.spawn = spawn
+  mod.ulid = ulid
+}
+
+const getUlid = () => {
+  return mod.ulid()
 }
 
 const createAmqpConnection = async ({ amqplib, user, pass, host, port }) => {
@@ -40,6 +45,7 @@ const fork = ({ commandList, resultList }) => {
 
 export default {
   init,
+  getUlid,
   createAmqpConnection,
   awaitSleep,
   fork,
