@@ -12,18 +12,21 @@ const init = async ({ setting, lib, amqpConnection }) => {
 const _getPingRequest = ({ requestId, fileBuffer, rightTopText, leftTopText, rightBottomText }) => {
   const requestType = 'ping'
 
-  const delimiter = Buffer.from('|')
+  const currentDelimiter = Buffer.from(mod.lib.getUlid())
+  const delimiterDelimiter = Buffer.from('|')
   const messageBuffer = Buffer.concat([
+    currentDelimiter,
+    delimiterDelimiter,
     Buffer.from(requestType),
-    delimiter,
+    currentDelimiter,
     Buffer.from(requestId),
-    delimiter,
+    currentDelimiter,
     Buffer.from(rightTopText),
-    delimiter,
+    currentDelimiter,
     Buffer.from(leftTopText),
-    delimiter,
+    currentDelimiter,
     Buffer.from(rightBottomText),
-    delimiter,
+    currentDelimiter,
     fileBuffer, 
   ])
 
@@ -33,10 +36,13 @@ const _getPingRequest = ({ requestId, fileBuffer, rightTopText, leftTopText, rig
 const _getDummyRequest = ({ requestId }) => {
   const requestType = 'main_dummy'
 
-  const delimiter = Buffer.from('|')
+  const currentDelimiter = Buffer.from(mod.lib.getUlid())
+  const delimiterDelimiter = Buffer.from('|')
   const messageBuffer = Buffer.concat([
+    currentDelimiter,
+    delimiterDelimiter,
     Buffer.from(requestType),
-    delimiter,
+    currentDelimiter,
     Buffer.from(requestId),
   ])
 
@@ -101,7 +107,7 @@ const handleRegisterMainPrompt = async ({ fileList, title, narrationCsv }) => {
 
   const requestId = mod.lib.getUlid()
   const messageBuffer = _getMainRequest({ requestId, fileList, title, narrationCsv })
-  // mod.amqpChannel.sendToQueue(queue, messageBuffer)
+  mod.amqpChannel.sendToQueue(queue, messageBuffer)
 
   const handleResult = { isRegistered: true, requestId }
   return handleResult

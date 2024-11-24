@@ -13,31 +13,34 @@ const init = async ({ setting, output, input, lib, amqpConnection }) => {
   mod.lib = lib
 }
 
-const _splitBuffer = ({ buffer, delimiter }) => {
-  const delimiterBuffer = Buffer.from(delimiter)
+const _splitBuffer = ({ buffer, delimiterDelimiterBuffer }) => {
+  const delimiterIndex = buffer.indexOf(delimiterDelimiterBuffer)
+  const currentDelimiter = buffer.slice(0, delimiterIndex)
+  const bufferAfterCurrentDelimiter = buffer.slice(currentDelimiter.length + delimiterDelimiterBuffer.length)
+  const MAX_PARAMETER_N = 10
 
   const _getStrAndBuffer = ({ buffer }) => {
     if (buffer === null) {
       return { textData: null, restBuffer: null }
     }
-    const delimiterIndex = buffer.indexOf(delimiterBuffer)
+    const delimiterIndex = buffer.indexOf(currentDelimiter)
     if (delimiterIndex === -1) {
       return { textData: null, restBuffer: null }
     }
     const textBuffer = buffer.slice(0, delimiterIndex)
     const textData = textBuffer.toString()
 
-    const restBuffer = buffer.slice(delimiterIndex + delimiterBuffer.length)
+    const restBuffer = buffer.slice(delimiterIndex + delimiterDelimiterBuffer.length)
 
     return { textData, restBuffer }
   }
 
-  let currentRestBuffer = buffer
+  let currentRestBuffer = bufferAfterCurrentDelimiter
   const splitResult = {}
-  const keyList = ['requestType', 'requestId', 'rightTopText', 'leftTopText', 'rightBottomText']
-  keyList.forEach((key) => {
+  const _list = [... new Array(MAX_PARAMETER_N)]
+  _list.forEach((_, i) => {
     const { textData, restBuffer } = _getStrAndBuffer({ buffer: currentRestBuffer })
-    splitResult[key] = textData
+    splitResult[i] = textData
     currentRestBuffer = restBuffer
   })
 
@@ -61,23 +64,31 @@ const _callMainDummy = async () => {
 }
 
 const handleRequest = async ({ requestBuffer }) => {
-  const delimiter = Buffer.from('|')
-  const { requestId, requestType, rightTopText, leftTopText, rightBottomText, fileBuffer } = _splitBuffer({ buffer: requestBuffer, delimiter })
-  console.log({ requestId, requestType, rightTopText, leftTopText, rightBottomText })
+  const delimiterDelimiterBuffer = Buffer.from('|')
+  const requestObj = _splitBuffer({ buffer: requestBuffer, delimiterDelimiterBuffer })
+  // console.log({ requestObj })
   const responseObj = {}
   const tmpFilePath = '/app/data/uploaded_file'
 
+  const requestType = requestObj[0]
+  const requestId = requestObj[1]
+
+  console.log({ requestType, requestId })
+
   if (requestType === 'ping') {
     responseObj.message = 'pong'
+    const fileBuffer = requestObj[2]
     const saveResult = mod.output.saveFile({ filePath: tmpFilePath, fileBuffer })
     // console.log({ saveResult })
   } else if (requestType === 'main_dummy') {
     const resultMovieBuffer = _callMainDummy()
+  } else if (requestType === 'main') {
+    console.log('call main')
   } else {
     console.log('invalid requestType:', requestType)
   }
 
-  return { requestId, responseObj }
+  return { requestId: requestId, responseObj }
 }
 
 
