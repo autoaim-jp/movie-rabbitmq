@@ -6,7 +6,7 @@ PHONY=default init run rebuild help
 
 default: run
 
-init: init-submodule init-module init-dir
+init: init-submodule init-module init-dir init-env
 run: docker-compose-up
 rebuild: docker-compose-down docker-compose-build
 
@@ -26,6 +26,16 @@ init-module:
 
 init-dir:
 	mkdir -p ./service/movieEngine/src/data/
+
+init-env:
+	@if [ ! -f service/movieApi/src/.env ]; then \
+		echo "Copying .env.sample to .env for movieApi"; \
+		cp service/movieApi/src/.env{.sample,}; \
+	fi
+	@if [ ! -f service/movieEngine/src/.env ]; then \
+		echo "Copying .env.sample to .env for movieEngine"; \
+		cp service/movieEngine/src/.env{.sample,}; \
+	fi
 
 docker-compose-up:
 	docker compose -p ${DOCKER_PROJECT_NAME} up
