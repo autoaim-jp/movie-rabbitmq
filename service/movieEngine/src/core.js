@@ -16,7 +16,7 @@ const init = async ({ setting, output, input, lib, amqpConnection }) => {
 const _splitBuffer = ({ buffer, delimiterDelimiterBuffer }) => {
   const delimiterIndex = buffer.indexOf(delimiterDelimiterBuffer)
   const currentDelimiter = buffer.slice(0, delimiterIndex)
-  const bufferAfterCurrentDelimiter = buffer.slice(currentDelimiter.length + delimiterDelimiterBuffer.length)
+  const bufferAfterCurrentDelimiter = buffer.slice(delimiterIndex + delimiterDelimiterBuffer.length)
   const MAX_PARAMETER_N = 10
 
   const _getStrAndBuffer = ({ buffer }) => {
@@ -29,7 +29,7 @@ const _splitBuffer = ({ buffer, delimiterDelimiterBuffer }) => {
     }
     const targetBuffer = buffer.slice(0, delimiterIndex)
 
-    const restBuffer = buffer.slice(delimiterIndex + delimiterDelimiterBuffer.length)
+    const restBuffer = buffer.slice(delimiterIndex + currentDelimiter.length)
 
     return { targetBuffer, restBuffer }
   }
@@ -39,13 +39,14 @@ const _splitBuffer = ({ buffer, delimiterDelimiterBuffer }) => {
   const _list = [... new Array(MAX_PARAMETER_N)]
   _list.forEach((_, i) => {
     const { targetBuffer, restBuffer } = _getStrAndBuffer({ buffer: currentRestBuffer })
-    splitResultList.push(targetBuffer)
     currentRestBuffer = restBuffer
+    if(targetBuffer === null) {
+      return
+    }
+    splitResultList.push(targetBuffer)
   })
 
-  splitResult.fileBuffer = currentRestBuffer
-
-  return splitResult
+  return splitResultList
 }
 
 const _callMainDummy = async ({ requestObj }) => {
@@ -75,6 +76,9 @@ const _callMain = async ({ requestId, titleBuffer, narrationCsvBuffer, imageBuff
   const imageDirPath = `/app/data/image_${requestId}/`
   mod.output.makeDir({ dirPath: imageDirPath })
   imageBufferList.forEach((fileBuffer, i) => {
+    if(fileBuffer === null) {
+      return
+    }
     const filePath = `${imageDirPath}${i}${IMAGE_EXT}`
     mod.output.saveFile({ filePath, fileBuffer })
   })
@@ -85,6 +89,7 @@ const _callMain = async ({ requestId, titleBuffer, narrationCsvBuffer, imageBuff
 
   const commandList = ['cd', '/app/lib/xmodule-movie-core', '&&', './main.sh', outputFilePath, narrationCsvFilePath, title, tmpTitleImageFilePath, TEAM_NAME, imageDirPath, VOICE_ENGINE]
 
+  console.log({ commandList })
   await mod.lib.fork({ commandList, resultList })
 
   mod.output.saveFile({ filePath: '/app/data/fork3.log', fileBuffer: Buffer.from(resultList.join('\n')) })
@@ -115,7 +120,6 @@ const handleRequest = async ({ requestBuffer }) => {
   } else if (requestType === 'main_dummy') {
     const resultMovieBuffer = _callMainDummy()
   } else if (requestType === 'main') {
-    console.log('call main', splitResultList.length)
     const titleBuffer = splitResultList[2]
     const narrationCsvBuffer = splitResultList[3]
     const imageBufferList = splitResultList.slice(4)

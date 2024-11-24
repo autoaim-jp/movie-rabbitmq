@@ -1,7 +1,7 @@
 # Action,Speaker,Speed,Text
 engine,voicevox
 silent,1,,
-speak,m1,1.0,test シマリス兄弟とふしぎなショッピングモール。
+speak,m1,1.0,test_シマリス兄弟とふしぎなショッピングモール。
 silent,3,,
 start-page,,,
 speak,m1,1.0,シマリスの兄弟リッキーとトビーは、ショッピングモールで新しいおもちゃを探していました。

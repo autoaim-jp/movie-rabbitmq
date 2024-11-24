@@ -28,6 +28,7 @@ const _getPingRequest = ({ requestId, fileBuffer, rightTopText, leftTopText, rig
     Buffer.from(rightBottomText),
     currentDelimiter,
     fileBuffer, 
+    currentDelimiter,
   ])
 
   return messageBuffer
@@ -44,6 +45,7 @@ const _getDummyRequest = ({ requestId }) => {
     Buffer.from(requestType),
     currentDelimiter,
     Buffer.from(requestId),
+    currentDelimiter,
   ])
 
   return messageBuffer
@@ -53,6 +55,8 @@ const _getMainRequest = ({ requestId, fileList, title, narrationCsv }) => {
   const requestType = 'main'
 
   const currentDelimiter = Buffer.from(mod.lib.getUlid())
+  console.log(`デリミタ: ${currentDelimiter.toString()}`)
+  // const currentDelimiter = Buffer.from('|')
   const delimiterDelimiter = Buffer.from('|')
   let messageBuffer = Buffer.concat([
     currentDelimiter,
@@ -71,9 +75,14 @@ const _getMainRequest = ({ requestId, fileList, title, narrationCsv }) => {
     messageBuffer = Buffer.concat([
       messageBuffer,
       currentDelimiter,
-      Buffer.from(file.buffer)
+      file.buffer
     ])
   })
+
+  messageBuffer = Buffer.concat([
+    messageBuffer,
+    currentDelimiter,
+  ])
 
   return messageBuffer
 }
@@ -106,6 +115,7 @@ const handleRegisterMainPrompt = async ({ fileList, title, narrationCsv }) => {
   await mod.amqpChannel.assertQueue(queue)
 
   const requestId = mod.lib.getUlid()
+  console.log({ requestId, title, narrationCsv })
   const messageBuffer = _getMainRequest({ requestId, fileList, title, narrationCsv })
   mod.amqpChannel.sendToQueue(queue, messageBuffer)
 
