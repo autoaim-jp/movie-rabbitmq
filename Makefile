@@ -20,8 +20,8 @@ init-submodule:
 	git submodule update --remote --init --recursive
 
 init-module:
-	cd ./service/movieEngine/src/lib/xmodule-movie-core/ \
-	git checkout . \
+	cd ./service/movieEngine/src/lib/xmodule-movie-core/ && \
+	git checkout . && \
 	git clean -df
 
 init-dir:
