@@ -11,11 +11,12 @@ import fs from 'fs'
 import setting from './setting.js'
 import * as output from './output.js'
 import core from './core.js'
+import * as input from './input.js'
 import action from './action.js'
 import lib from './lib.js'
 
 const asocial = {
-  setting, output, core, action, lib
+  setting, output, core, input, action, lib
 }
 const a = asocial
 
@@ -23,7 +24,7 @@ const _getDefaultRouter = () => {
   const expressRouter = express.Router()
 
   const appPath = `${path.dirname(new URL(import.meta.url).pathname)}/`
-  expressRouter.use(express.static(appPath + a.setting.getValue('static.PUBLIC_STATIC_DIR'), { index: 'index.html', extensions: ['html'] }))
+  // expressRouter.use(express.static(appPath + a.setting.getValue('static.PUBLIC_STATIC_DIR'), { index: 'index.html', extensions: ['html'] }))
 
   expressRouter.use(bodyParser.urlencoded({ extended: true }))
   expressRouter.use(bodyParser.json())
@@ -35,7 +36,7 @@ const _getDefaultRouter = () => {
 const _getFunctionRouter = () => {
   const expressRouter = express.Router()
 
-  const { REGISTER_PROMPT_PING, REGISTER_PROMPT_DUMMY, REGISTER_PROMPT_MAIN, LOOKUP_RESPONSE, FORM_UPLOAD, FILE_LIST_UPLOAD, } = a.setting.getList('api.REGISTER_PROMPT_PING', 'api.REGISTER_PROMPT_DUMMY', 'api.REGISTER_PROMPT_MAIN', 'api.LOOKUP_RESPONSE', 'key.FORM_UPLOAD', 'key.FILE_LIST_UPLOAD')
+  const { REGISTER_PROMPT_PING, REGISTER_PROMPT_DUMMY, REGISTER_PROMPT_MAIN, LOOKUP_RESPONSE, GET_FILE_LIST, GET_FILE_CONTENT, FORM_UPLOAD, FILE_LIST_UPLOAD, } = a.setting.getList('api.REGISTER_PROMPT_PING', 'api.REGISTER_PROMPT_DUMMY', 'api.REGISTER_PROMPT_MAIN', 'api.LOOKUP_RESPONSE', 'api.GET_FILE_LIST', 'api.GET_FILE_CONTENT', 'key.FORM_UPLOAD', 'key.FILE_LIST_UPLOAD')
 
   const fileUploadHandler = a.action.getHandlerFileUpload({
     FORM_UPLOAD,
@@ -70,6 +71,16 @@ const _getFunctionRouter = () => {
   })
   expressRouter.get(LOOKUP_RESPONSE, lookupResponseHandler)
 
+  const fileListHandler = a.action.getHandlerFileList({
+    handleFileList: a.core.handleFileList
+  })
+  expressRouter.get(GET_FILE_LIST, fileListHandler)
+
+  const fileContentHandler = a.action.getHandlerFileContent({
+    handleFileContent: a.core.handleFileContent
+  })
+  expressRouter.get(GET_FILE_CONTENT, fileContentHandler)
+
   return expressRouter
 }
 
@@ -96,7 +107,8 @@ const init = async () => {
   a.output.init({ fs })
   const { AMQP_USER: user, AMQP_PASS: pass, AMQP_HOST: host, AMQP_PORT: port } = a.setting.getList('env.AMQP_USER', 'env.AMQP_PASS', 'env.AMQP_HOST', 'env.AMQP_PORT')
   const amqpConnection = await a.lib.createAmqpConnection({ amqplib, user, pass, host, port })
-  await core.init({ setting, output, lib, amqpConnection })
+  input.init({ fs })
+  await core.init({ setting, output, input, lib, amqpConnection })
   lib.init({ ulid, multer })
 }
 

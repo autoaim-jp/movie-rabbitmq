@@ -10,8 +10,8 @@ const init = ({ env }) => {
   setting.env.AMQP_PORT = env.AMQP_PORT
 }
 
-setting.static = {}
-setting.static.PUBLIC_STATIC_DIR = 'view/static'
+setting.path = {}
+setting.path.MOVIE_DIR_PATH = '/app/data/output/'
 
 setting.amqp = {}
 setting.amqp.REQUEST_QUEUE = 'movie-request-queue'
@@ -27,6 +27,8 @@ setting.api.REGISTER_PROMPT_PING = `${API_ROOT_PATH}/prompt/register/ping`
 setting.api.REGISTER_PROMPT_DUMMY = `${API_ROOT_PATH}/prompt/register/dummy`
 setting.api.REGISTER_PROMPT_MAIN = `${API_ROOT_PATH}/prompt/register/main`
 setting.api.LOOKUP_RESPONSE = `${API_ROOT_PATH}/response/lookup`
+setting.api.GET_FILE_LIST = `${API_ROOT_PATH}/file/list`
+setting.api.GET_FILE_CONTENT = `${API_ROOT_PATH}/file/content`
 
 const getList = (...keyList) => {
   /* eslint-disable no-param-reassign */

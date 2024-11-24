@@ -1,12 +1,13 @@
 const mod = {}
 const store = {}
 
-const init = async ({ setting, output, lib, amqpConnection }) => {
+const init = async ({ setting, output, input, lib, amqpConnection }) => {
   const amqpChannel = await amqpConnection.createChannel()
   mod.amqpChannel = amqpChannel
 
   mod.setting = setting
   mod.output = output
+  mod.input = input
   mod.lib = lib
 }
 
@@ -133,9 +134,25 @@ const handleLookupResponse = ({ requestId }) => {
   return handleResult
 }
 
+const handleFileList = ({ requestId }) => {
+  const MOVIE_DIR_PATH = mod.setting.getValue('path.MOVIE_DIR_PATH') 
+  const dirPath = requestId? `${MOVIE_DIR_PATH}${requestId}/`: MOVIE_DIR_PATH
+  console.log({ dirPath })
+  const fileDirList = mod.input.getFileDirList({ dirPath })
+  const handleResult = { result: { fileDirList } }
+  return handleResult
+}
+
+const handleFileContent = ({ requestId, fileName }) => {
+  const MOVIE_DIR_PATH = mod.setting.getValue('path.MOVIE_DIR_PATH') 
+  const filePath = `${MOVIE_DIR_PATH}${requestId}/${fileName}`
+  const handleResultBuffer = mod.input.getFileContent({ filePath })
+  return handleResultBuffer
+}
+
 const startConsumer = async () => {
   const queue = mod.setting.getValue('amqp.RESPONSE_QUEUE') 
-  const MOVIE_DIR_PATH = '/app/data/output/'
+  const MOVIE_DIR_PATH = mod.setting.getValue('path.MOVIE_DIR_PATH') 
   await mod.amqpChannel.assertQueue(queue)
 
   mod.amqpChannel.consume(queue, (msg) => {
@@ -150,9 +167,10 @@ const startConsumer = async () => {
       const requestType = splitResultList[1].toString()
 
       if (requestType === 'main') {
-        const filePath = `${MOVIE_DIR_PATH}${requestId}.mp4`
+        const dirPath = `${MOVIE_DIR_PATH}${requestId}/`
+        const filePath = `${dirPath}output.mp4`
         const fileBuffer = splitResultList[2]
-        mod.output.makeDir({ dirPath: MOVIE_DIR_PATH })
+        mod.output.makeDir({ dirPath, })
         mod.output.saveFile({ filePath, fileBuffer })
         store[requestId] = 'ready'
       }
@@ -168,6 +186,8 @@ export default {
   handleRegisterPingPrompt,
   handleRegisterDummyPrompt,
   handleRegisterMainPrompt,
+  handleFileList,
+  handleFileContent,
   handleLookupResponse,
   startConsumer,
 }

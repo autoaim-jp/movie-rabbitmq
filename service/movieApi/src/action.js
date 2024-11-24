@@ -86,6 +86,26 @@ const getHandlerLookupResponse = ({ handleLookupResponse }) => {
   }
 }
 
+const getHandlerFileList = ({ handleFileList }) => {
+  return async (req, res) => {
+    const { requestId } = req.query
+    const handleResult = handleFileList({ requestId  })
+
+    res.json({ result: handleResult })
+  }
+}
+
+const getHandlerFileContent = ({ handleFileContent }) => {
+  return async (req, res) => {
+    const { requestId, fileName } = req.query
+
+    const handleResultBuffer = handleFileContent({ requestId, fileName })
+
+    // res.json({ result: handleResult })
+    res.end(handleResultBuffer)
+  }
+}
+
 export default {
   getHandlerFileUpload,
   getHandlerFileListUpload,
@@ -93,6 +113,8 @@ export default {
   getHandlerRegisterDummyPrompt,
   getHandlerRegisterMainPrompt,
   getHandlerLookupResponse,
+  getHandlerFileList,
+  getHandlerFileContent,
 }
 
 
