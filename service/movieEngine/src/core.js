@@ -83,14 +83,14 @@ const handleRequest = async ({ requestBuffer }) => {
     responseBufferList.push(Buffer.from(requestType))
     responseBufferList.push(Buffer.from('pong'))
   } else if (requestType === 'main_dummy') {
-    const resultMovieBuffer = _callMainDummy()
+    const resultMovieBuffer = await _callMainDummy()
     responseBufferList.push(Buffer.from(requestType))
     responseBufferList.push(Buffer.from('success'))
   } else if (requestType === 'main') {
     const titleBuffer = splitResultList[2]
     const narrationCsvBuffer = splitResultList[3]
     const imageBufferList = splitResultList.slice(4)
-    const resultMovieBuffer = _callMain({ requestId, titleBuffer, narrationCsvBuffer, imageBufferList })
+    const resultMovieBuffer = await _callMain({ requestId, titleBuffer, narrationCsvBuffer, imageBufferList })
     responseBufferList.push(Buffer.from(requestType))
     responseBufferList.push(resultMovieBuffer)
   } else {

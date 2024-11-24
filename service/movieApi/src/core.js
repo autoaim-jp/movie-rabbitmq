@@ -127,7 +127,7 @@ const handleRegisterMainPrompt = async ({ fileList, title, narrationCsv }) => {
 const handleLookupResponse = ({ requestId }) => {
   const handleResult = store[requestId]
   if (!handleResult) {
-    return {  waiting: true }
+    return { waiting: true }
   }
 
   return handleResult

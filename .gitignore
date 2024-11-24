@@ -3,5 +3,6 @@ node_modules/
 
 service/rabbitmq/data/
 service/movieEngine/src/data/
+service/movieApi/src/data/
 
 
