@@ -44,6 +44,15 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  voicevox:
+    container_name: voicevox
+    image: voicevox/voicevox_engine:cpu-0.21.1
+    ports:
+      - 127.0.0.1:50021:50021
+    environment:
+      - RUN_MODE=production
+    restart: unless-stopped
+
 volumes:
   movie-rabbitmq-ma-nm:
   movie-rabbitmq-me-nm:
