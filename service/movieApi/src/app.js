@@ -6,14 +6,16 @@ import amqplib from 'amqplib'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import multer from 'multer'
+import fs from 'fs'
 
 import setting from './setting.js'
-import action from './action.js'
+import * as output from './output.js'
 import core from './core.js'
+import action from './action.js'
 import lib from './lib.js'
 
 const asocial = {
-  setting, core, action, lib
+  setting, output, core, action, lib
 }
 const a = asocial
 
@@ -91,9 +93,10 @@ const startServer = ({ app, port }) => {
 const init = async () => {
   dotenv.config()
   a.setting.init({ env: process.env })
+  a.output.init({ fs })
   const { AMQP_USER: user, AMQP_PASS: pass, AMQP_HOST: host, AMQP_PORT: port } = a.setting.getList('env.AMQP_USER', 'env.AMQP_PASS', 'env.AMQP_HOST', 'env.AMQP_PORT')
   const amqpConnection = await a.lib.createAmqpConnection({ amqplib, user, pass, host, port })
-  await core.init({ setting, lib, amqpConnection })
+  await core.init({ setting, output, lib, amqpConnection })
   lib.init({ ulid, multer })
 }
 

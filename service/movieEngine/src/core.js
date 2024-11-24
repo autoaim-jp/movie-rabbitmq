@@ -13,42 +13,6 @@ const init = async ({ setting, output, input, lib, amqpConnection }) => {
   mod.lib = lib
 }
 
-const _splitBuffer = ({ buffer, delimiterDelimiterBuffer }) => {
-  const delimiterIndex = buffer.indexOf(delimiterDelimiterBuffer)
-  const currentDelimiter = buffer.slice(0, delimiterIndex)
-  const bufferAfterCurrentDelimiter = buffer.slice(delimiterIndex + delimiterDelimiterBuffer.length)
-  const MAX_PARAMETER_N = 10
-
-  const _getStrAndBuffer = ({ buffer }) => {
-    if (buffer === null) {
-      return { targetBuffer: null, restBuffer: null }
-    }
-    const delimiterIndex = buffer.indexOf(currentDelimiter)
-    if (delimiterIndex === -1) {
-      return { targetBuffer: null, restBuffer: null }
-    }
-    const targetBuffer = buffer.slice(0, delimiterIndex)
-
-    const restBuffer = buffer.slice(delimiterIndex + currentDelimiter.length)
-
-    return { targetBuffer, restBuffer }
-  }
-
-  let currentRestBuffer = bufferAfterCurrentDelimiter
-  const splitResultList = []
-  const _list = [... new Array(MAX_PARAMETER_N)]
-  _list.forEach((_, i) => {
-    const { targetBuffer, restBuffer } = _getStrAndBuffer({ buffer: currentRestBuffer })
-    currentRestBuffer = restBuffer
-    if(targetBuffer === null) {
-      return
-    }
-    splitResultList.push(targetBuffer)
-  })
-
-  return splitResultList
-}
-
 const _callMainDummy = async ({ requestObj }) => {
   const outputFilePath = '/app/data/output_file.mp4'
   const resultList = []
@@ -102,9 +66,9 @@ const _callMain = async ({ requestId, titleBuffer, narrationCsvBuffer, imageBuff
 
 const handleRequest = async ({ requestBuffer }) => {
   const delimiterDelimiterBuffer = Buffer.from('|')
-  const splitResultList = _splitBuffer({ buffer: requestBuffer, delimiterDelimiterBuffer })
+  const splitResultList = mod.lib.parseBufferList({ buffer: requestBuffer, delimiterDelimiterBuffer })
   // console.log({ splitResultList })
-  const responseObj = {}
+  const responseBufferList = []
   const tmpFilePath = '/app/data/uploaded_file'
 
   const requestType = splitResultList[0].toString()
@@ -113,24 +77,53 @@ const handleRequest = async ({ requestBuffer }) => {
   console.log({ requestType, requestId })
 
   if (requestType === 'ping') {
-    responseObj.message = 'pong'
     const fileBuffer = splitResultList[2]
     const saveResult = mod.output.saveFile({ filePath: tmpFilePath, fileBuffer })
     // console.log({ saveResult })
+    responseBufferList.push(Buffer.from(requestType))
+    responseBufferList.push(Buffer.from('pong'))
   } else if (requestType === 'main_dummy') {
     const resultMovieBuffer = _callMainDummy()
+    responseBufferList.push(Buffer.from(requestType))
+    responseBufferList.push(Buffer.from('success'))
   } else if (requestType === 'main') {
     const titleBuffer = splitResultList[2]
     const narrationCsvBuffer = splitResultList[3]
     const imageBufferList = splitResultList.slice(4)
     const resultMovieBuffer = _callMain({ requestId, titleBuffer, narrationCsvBuffer, imageBufferList })
+    responseBufferList.push(Buffer.from(requestType))
+    responseBufferList.push(resultMovieBuffer)
   } else {
     console.log('invalid requestType:', requestType)
   }
 
-  return { requestId: requestId, responseObj }
+  return { requestId: requestId, responseBufferList }
 }
 
+const _createResponseBuffer = ({ requestId, responseBufferList }) => {
+  const currentDelimiter = Buffer.from(mod.lib.getUlid())
+  const delimiterDelimiter = Buffer.from('|')
+  let messageBuffer = Buffer.concat([
+    currentDelimiter,
+    delimiterDelimiter,
+    Buffer.from(requestId),
+  ])
+
+  responseBufferList.forEach((buffer) => {
+    messageBuffer = Buffer.concat([
+      messageBuffer,
+      currentDelimiter,
+      buffer,
+    ])
+  })
+
+  messageBuffer = Buffer.concat([
+    messageBuffer,
+    currentDelimiter,
+  ])
+
+  return messageBuffer
+}
 
 const startConsumer = async () => {
   const promptQueue = mod.setting.getValue('amqp.REQUEST_QUEUE') 
@@ -148,13 +141,11 @@ const startConsumer = async () => {
 
       const requestBuffer = msg.content
 
-      const { requestId, responseObj } = await handleRequest({ requestBuffer })
-      console.log('movie response:')
-      console.log(responseObj)
+      const { requestId, responseBufferList } = await handleRequest({ requestBuffer })
+      console.log('movie response:', responseBufferList.length)
 
-      const responseJson = { requestId, response: responseObj }
-      const responseJsonStr = JSON.stringify(responseJson)
-      mod.amqpResponseChannel.sendToQueue(responseQueue, Buffer.from(responseJsonStr))
+      const responseBuffer = _createResponseBuffer({ requestId, responseBufferList })
+      mod.amqpResponseChannel.sendToQueue(responseQueue, responseBuffer)
 
       mod.amqpPromptChannel.ack(msg)
     } else {

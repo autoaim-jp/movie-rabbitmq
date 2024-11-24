@@ -5,13 +5,13 @@ import fs from 'fs'
 import { spawn } from 'child_process'
 
 import setting from './setting.js'
-import core from './core.js'
 import * as output from './output.js'
+import core from './core.js'
 import * as input from './input.js'
 import lib from './lib.js'
 
 const asocial = {
-  setting, core, output, input, lib
+  setting, output, core, input, lib
 }
 const a = asocial
 

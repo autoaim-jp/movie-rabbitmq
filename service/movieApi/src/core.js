@@ -1,11 +1,12 @@
 const mod = {}
 const store = {}
 
-const init = async ({ setting, lib, amqpConnection }) => {
+const init = async ({ setting, output, lib, amqpConnection }) => {
   const amqpChannel = await amqpConnection.createChannel()
   mod.amqpChannel = amqpChannel
 
   mod.setting = setting
+  mod.output = output
   mod.lib = lib
 }
 
@@ -55,8 +56,7 @@ const _getMainRequest = ({ requestId, fileList, title, narrationCsv }) => {
   const requestType = 'main'
 
   const currentDelimiter = Buffer.from(mod.lib.getUlid())
-  console.log(`デリミタ: ${currentDelimiter.toString()}`)
-  // const currentDelimiter = Buffer.from('|')
+  console.log(`delimiter: ${currentDelimiter.toString()}`)
   const delimiterDelimiter = Buffer.from('|')
   let messageBuffer = Buffer.concat([
     currentDelimiter,
@@ -135,14 +135,27 @@ const handleLookupResponse = ({ requestId }) => {
 
 const startConsumer = async () => {
   const queue = mod.setting.getValue('amqp.RESPONSE_QUEUE') 
+  const MOVIE_DIR_PATH = '/app/data/output/'
   await mod.amqpChannel.assertQueue(queue)
 
   mod.amqpChannel.consume(queue, (msg) => {
     if (msg !== null) {
-      console.log('Recieved:', msg.content.toString())
+      const responseBuffer = msg.content
+      console.log('Recieved:', responseBuffer.length)
       mod.amqpChannel.ack(msg)
-      const responseJson = JSON.parse(msg.content.toString())
-      store[responseJson.requestId] = responseJson
+      const delimiterDelimiterBuffer = Buffer.from('|')
+      const splitResultList = mod.lib.parseBufferList({ buffer: responseBuffer, delimiterDelimiterBuffer })
+
+      const requestId = splitResultList[0].toString()
+      const requestType = splitResultList[1].toString()
+
+      if (requestType === 'main') {
+        const filePath = `${MOVIE_DIR_PATH}${requestId}.mp4`
+        const fileBuffer = splitResultList[2]
+        mod.output.makeDir({ dirPath: MOVIE_DIR_PATH })
+        mod.output.saveFile({ filePath, fileBuffer })
+        store[requestId] = 'ready'
+      }
     } else {
       console.log('Consumer cancelled by server')
       throw new Error()
