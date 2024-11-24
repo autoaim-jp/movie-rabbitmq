@@ -19,11 +19,13 @@ setting.amqp.RESPONSE_QUEUE = 'movie-response-queue'
 
 setting.key = {}
 setting.key.FORM_UPLOAD = 'file'
+setting.key.FILE_LIST_UPLOAD = 'fileList[]'
 
 setting.api = {}
 const API_ROOT_PATH = '/api/v1'
 setting.api.REGISTER_PROMPT_PING = `${API_ROOT_PATH}/prompt/register/ping`
 setting.api.REGISTER_PROMPT_DUMMY = `${API_ROOT_PATH}/prompt/register/dummy`
+setting.api.REGISTER_PROMPT_MAIN = `${API_ROOT_PATH}/prompt/register/main`
 setting.api.LOOKUP_RESPONSE = `${API_ROOT_PATH}/response/lookup`
 
 const getList = (...keyList) => {

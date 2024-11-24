@@ -30,7 +30,7 @@ const _getPingRequest = ({ requestId, fileBuffer, rightTopText, leftTopText, rig
   return messageBuffer
 }
 
-const _getMainDummyRequest = ({ requestId }) => {
+const _getDummyRequest = ({ requestId }) => {
   const requestType = 'main_dummy'
 
   const delimiter = Buffer.from('|')
@@ -43,6 +43,34 @@ const _getMainDummyRequest = ({ requestId }) => {
   return messageBuffer
 }
 
+const _getMainRequest = ({ requestId, fileList, title, narrationCsv }) => {
+  const requestType = 'main'
+
+  const currentDelimiter = Buffer.from(mod.lib.getUlid())
+  const delimiterDelimiter = Buffer.from('|')
+  let messageBuffer = Buffer.concat([
+    currentDelimiter,
+    delimiterDelimiter,
+    Buffer.from(requestType),
+    currentDelimiter,
+    Buffer.from(requestId),
+    currentDelimiter,
+    Buffer.from(title),
+    currentDelimiter,
+    Buffer.from(narrationCsv),
+  ])
+
+  fileList.forEach((file) => {
+    console.log({ originalname: file.originalname })
+    messageBuffer = Buffer.concat([
+      messageBuffer,
+      currentDelimiter,
+      Buffer.from(file.buffer)
+    ])
+  })
+
+  return messageBuffer
+}
 const handleRegisterPingPrompt = async ({ fileBuffer, rightTopText, leftTopText, rightBottomText }) => {
   const queue = mod.setting.getValue('amqp.REQUEST_QUEUE') 
   await mod.amqpChannel.assertQueue(queue)
@@ -60,13 +88,24 @@ const handleRegisterDummyPrompt = async ({}) => {
   await mod.amqpChannel.assertQueue(queue)
 
   const requestId = mod.lib.getUlid()
-  const messageBuffer = _getMainDummyRequest({ requestId })
+  const messageBuffer = _getDummyRequest({ requestId })
   mod.amqpChannel.sendToQueue(queue, messageBuffer)
 
   const handleResult = { isRegistered: true, requestId }
   return handleResult
 }
 
+const handleRegisterMainPrompt = async ({ fileList, title, narrationCsv }) => {
+  const queue = mod.setting.getValue('amqp.REQUEST_QUEUE') 
+  await mod.amqpChannel.assertQueue(queue)
+
+  const requestId = mod.lib.getUlid()
+  const messageBuffer = _getMainRequest({ requestId, fileList, title, narrationCsv })
+  // mod.amqpChannel.sendToQueue(queue, messageBuffer)
+
+  const handleResult = { isRegistered: true, requestId }
+  return handleResult
+}
 
 
 const handleLookupResponse = ({ requestId }) => {
@@ -99,6 +138,7 @@ export default {
   init,
   handleRegisterPingPrompt,
   handleRegisterDummyPrompt,
+  handleRegisterMainPrompt,
   handleLookupResponse,
   startConsumer,
 }

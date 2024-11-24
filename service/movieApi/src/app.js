@@ -33,23 +33,35 @@ const _getDefaultRouter = () => {
 const _getFunctionRouter = () => {
   const expressRouter = express.Router()
 
-  const { REGISTER_PROMPT_PING, REGISTER_PROMPT_DUMMY, LOOKUP_RESPONSE, FORM_UPLOAD } = a.setting.getList('api.REGISTER_PROMPT_PING', 'api.REGISTER_PROMPT_DUMMY', 'api.LOOKUP_RESPONSE', 'key.FORM_UPLOAD')
+  const { REGISTER_PROMPT_PING, REGISTER_PROMPT_DUMMY, REGISTER_PROMPT_MAIN, LOOKUP_RESPONSE, FORM_UPLOAD, FILE_LIST_UPLOAD, } = a.setting.getList('api.REGISTER_PROMPT_PING', 'api.REGISTER_PROMPT_DUMMY', 'api.REGISTER_PROMPT_MAIN', 'api.LOOKUP_RESPONSE', 'key.FORM_UPLOAD', 'key.FILE_LIST_UPLOAD')
 
   const fileUploadHandler = a.action.getHandlerFileUpload({
     FORM_UPLOAD,
     parseMultipartFileUpload: a.lib.parseMultipartFileUpload
   })
 
+  // アップロードされたファイルを処理
   const registerPingPromptHandler = a.action.getHandlerRegisterPingPrompt({
     handleRegisterPingPrompt: a.core.handleRegisterPingPrompt
   })
   expressRouter.post(REGISTER_PROMPT_PING, fileUploadHandler, registerPingPromptHandler)
 
+  // main_dummy.shの動作確認
   const registerDummyPromptHandler = a.action.getHandlerRegisterDummyPrompt({
     handleRegisterDummyPrompt: a.core.handleRegisterDummyPrompt
   })
-  // expressRouter.post(REGISTER_PROMPT_DUMMY, fileUploadHandler, registerDummyPromptHandler)
   expressRouter.post(REGISTER_PROMPT_DUMMY, registerDummyPromptHandler)
+
+  // 画像とcsvをアップロード
+  const fileListUploadHandler = a.action.getHandlerFileListUpload({
+    FILE_LIST_UPLOAD,
+    parseMultipartFileListUpload: a.lib.parseMultipartFileListUpload
+  })
+
+  const registerMainPromptHandler = a.action.getHandlerRegisterMainPrompt({
+    handleRegisterMainPrompt: a.core.handleRegisterMainPrompt
+  })
+  expressRouter.post(REGISTER_PROMPT_MAIN, fileListUploadHandler, registerMainPromptHandler)
 
   const lookupResponseHandler = a.action.getHandlerLookupResponse({
     handleLookupResponse: a.core.handleLookupResponse

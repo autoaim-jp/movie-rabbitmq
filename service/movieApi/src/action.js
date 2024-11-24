@@ -27,6 +27,20 @@ const getHandlerFileUpload = ({ FORM_UPLOAD, parseMultipartFileUpload }) => {
   }
 }
 
+// 複数ファイルアップロード
+const getHandlerFileListUpload = ({ FILE_LIST_UPLOAD, parseMultipartFileListUpload }) => {
+  return async (req, res, next) => {
+    const uploadResult = await parseMultipartFileListUpload({ req, formKey: FILE_LIST_UPLOAD })
+    console.log({ uploadResult })
+    if (!uploadResult) {
+      res.json({ result: uploadResult })
+      return
+    }
+
+    next()
+  }
+}
+
 const getHandlerRegisterPingPrompt = ({ handleRegisterPingPrompt }) => {
   return async (req, res) => {
     const { rightTopText, leftTopText, rightBottomText } = req.body
@@ -51,6 +65,17 @@ const getHandlerRegisterDummyPrompt = ({ handleRegisterDummyPrompt }) => {
   }
 }
 
+const getHandlerRegisterMainPrompt = ({ handleRegisterMainPrompt }) => {
+  return async (req, res) => {
+    // console.log({ debug: true, request: 'ok!', prompt })
+    const fileList = req.files
+    const { title, narrationCsv } = req.body
+    const handleResult = await handleRegisterMainPrompt({ fileList, title, narrationCsv })
+
+    res.json({ result: handleResult })
+  }
+}
+
 const getHandlerLookupResponse = ({ handleLookupResponse }) => {
   return async (req, res) => {
     const { requestId } = req.query
@@ -63,8 +88,10 @@ const getHandlerLookupResponse = ({ handleLookupResponse }) => {
 
 export default {
   getHandlerFileUpload,
+  getHandlerFileListUpload,
   getHandlerRegisterPingPrompt,
   getHandlerRegisterDummyPrompt,
+  getHandlerRegisterMainPrompt,
   getHandlerLookupResponse,
 }
 
